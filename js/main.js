@@ -339,8 +339,11 @@ async function build3D() {
       markings: $('chk-3dmarkings').checked,
     },
   });
+  state.builtStyle = $('sel-3dstyle').value;
+  $('three-overlay').classList.remove('hidden');
 }
 $('sel-3dstyle').onchange = () => { if (state.viewer && state.model) build3D().catch(e => toast('3D生成に失敗: ' + e.message, true)); };
+$('btn-reset-view').onclick = () => state.viewer?.resetView();
 $('chk-3dbuildings').onchange = (e) => state.viewer?.setCategoryVisible('Buildings', e.target.checked);
 $('chk-3dmarkings').onchange = (e) => {
   for (const n of ['Markings', 'Crosswalks', 'Traces']) state.viewer?.setCategoryVisible(n, e.target.checked);
@@ -349,10 +352,12 @@ $('chk-3dmarkings').onchange = (e) => {
 $('btn-dl-glb').onclick = async () => {
   if (!state.viewer) { toast('先に「3Dを生成」を押してください', true); return; }
   try {
-    $('three-status').textContent = 'glTFを書き出し中…';
+    const style = state.builtStyle || $('sel-3dstyle').value;
+    const label = style === 'twin' ? 'デジタルツイン' : 'リアル';
+    $('three-status').textContent = `glTFを書き出し中…（${label}スタイル）`;
     const buf = await state.viewer.exportGLB();
-    storage.downloadFile('road-trace-map.glb', new Blob([buf], { type: 'model/gltf-binary' }));
-    $('three-status').textContent = '書き出し完了（メートル実寸 / Blender等で開けます）';
+    storage.downloadFile(`road-trace-${style}.glb`, new Blob([buf], { type: 'model/gltf-binary' }));
+    $('three-status').textContent = `書き出し完了（${label}スタイル / メートル実寸 / Blender等で開けます）`;
   } catch (e) {
     toast('glTF書き出しに失敗: ' + e.message, true);
   }

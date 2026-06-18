@@ -62,7 +62,13 @@
         <button id="btn-dl-glb">glTF(.glb)書き出し</button>
         <span id="three-status"></span>
       </div>
-      <div id="three-container"><p class="placeholder" id="three-placeholder">データ取得後、「3Dを生成」を押すとここに3Dマップが表示されます。ドラッグで回転、ホイールで拡大縮小、右ドラッグで移動。</p></div>
+      <div id="three-container">
+        <div id="three-overlay" class="hidden">
+          <button id="btn-reset-view" title="最初の視点に戻す">⟲ 視点をリセット</button>
+          <div class="three-guide">ドラッグ: 回転 ／ ホイール: 拡大縮小 ／ 右ドラッグ: 平行移動</div>
+        </div>
+        <p class="placeholder" id="three-placeholder">データ取得後、「3Dを生成」を押すとここに3Dマップが表示されます。ドラッグで回転、ホイールで拡大縮小、右ドラッグで移動。</p>
+      </div>
     </div>
   </section>
 

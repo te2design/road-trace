@@ -86,7 +86,27 @@ export function createViewer(container, onStatus = () => {}) {
   new ResizeObserver(resize).observe(container);
   resize();
 
-  renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+  // 視点リセット用の「ホーム」位置と、なめらかに戻すためのトゥイーン
+  const homePos = new THREE.Vector3();
+  const homeTarget = new THREE.Vector3();
+  let tween = null;
+  const easeInOut = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+  renderer.setAnimationLoop(() => {
+    if (tween) {
+      tween.t = Math.min(1, tween.t + 0.07);
+      const e = easeInOut(tween.t);
+      camera.position.lerpVectors(tween.fromPos, homePos, e);
+      controls.target.lerpVectors(tween.fromTarget, homeTarget, e);
+      if (tween.t >= 1) tween = null;
+    }
+    controls.update();
+    renderer.render(scene, camera);
+  });
+
+  function resetView() {
+    tween = { fromPos: camera.position.clone(), fromTarget: controls.target.clone(), t: 0 };
+  }
 
   function clearWorld() {
     for (const g of [...world.children]) {
@@ -413,8 +433,11 @@ export function createViewer(container, onStatus = () => {}) {
     // --- カメラ初期位置 ---
     const span = Math.max(w, h);
     const ch = roadHeightAt((minX + maxX) / 2, (minY + maxY) / 2);
-    controls.target.set((minX + maxX) / 2, ch, -(minY + maxY) / 2);
-    camera.position.set(minX + w * 0.15, ch + span * 0.7, -(minY - h * 0.25));
+    homeTarget.set((minX + maxX) / 2, ch, -(minY + maxY) / 2);
+    homePos.set(minX + w * 0.15, ch + span * 0.7, -(minY - h * 0.25));
+    controls.target.copy(homeTarget);
+    camera.position.copy(homePos);
+    tween = null;
     controls.update();
 
     onStatus(twin ? '3D生成完了（デジタルツイン）' : '3D生成完了（リアル）');
@@ -435,5 +458,5 @@ export function createViewer(container, onStatus = () => {}) {
     });
   }
 
-  return { build, exportGLB, setCategoryVisible, resize };
+  return { build, exportGLB, setCategoryVisible, resize, resetView };
 }
