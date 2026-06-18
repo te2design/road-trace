@@ -1,0 +1,135 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  font-size: 13px; color: #2b2d31; background: #eceff1;
+  display: flex; flex-direction: column;
+}
+
+/* ===== 上部バー ===== */
+#topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 6px 12px; background: #263238; color: #eceff1;
+  flex: 0 0 auto;
+}
+#topbar h1 { font-size: 16px; margin: 0; font-weight: 700; }
+#topbar h1 .sub { font-size: 11px; font-weight: 400; color: #b0bec5; margin-left: 6px; }
+#tabs { display: flex; gap: 4px; }
+.tab {
+  background: #37474f; color: #cfd8dc; border: none; border-radius: 6px 6px 0 0;
+  padding: 7px 14px; cursor: pointer; font-size: 13px;
+}
+.tab.active { background: #eceff1; color: #263238; font-weight: 700; }
+#statusbar { margin-left: auto; font-size: 12px; color: #b0bec5; max-width: 40%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ===== レイアウト ===== */
+main { flex: 1 1 auto; display: flex; min-height: 0; }
+#views { flex: 1 1 auto; position: relative; min-width: 0; }
+.pane { position: absolute; inset: 0; display: none; flex-direction: column; }
+.pane.active { display: flex; }
+#map { flex: 1; }
+#panel {
+  flex: 0 0 320px; overflow-y: auto; background: #fafafa;
+  border-left: 1px solid #cfd8dc; padding: 8px;
+}
+
+/* ===== パネル ===== */
+.box { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 8px; padding: 8px; }
+.box summary { font-weight: 700; cursor: pointer; padding: 2px; }
+.box .row { margin: 8px 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.btnrow button { flex: 1; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; }
+.grid4 label { display: flex; flex-direction: column; font-size: 11px; color: #607d8b; }
+.grid4 input { width: 100%; }
+input[type="number"], select { padding: 4px; border: 1px solid #cfd8dc; border-radius: 4px; font-size: 12px; }
+button {
+  padding: 6px 10px; border: 1px solid #b0bec5; border-radius: 6px;
+  background: #fff; cursor: pointer; font-size: 12px;
+}
+button:hover { background: #f0f4f5; }
+button.primary { background: #1976d2; border-color: #1976d2; color: #fff; font-weight: 700; }
+button.primary:hover { background: #1565c0; }
+button.big { width: 100%; padding: 10px; font-size: 14px; }
+button.danger { color: #c62828; border-color: #ef9a9a; }
+button.tool { flex: 1 1 30%; }
+button.tool.active { background: #1976d2; color: #fff; border-color: #1976d2; }
+#trace-tools { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.hint { font-size: 11px; color: #78909c; margin: 4px 0; line-height: 1.5; }
+.credit { font-size: 10px; color: #90a4ae; line-height: 1.6; }
+.hidden { display: none !important; }
+#layer-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 12px; }
+#area-label { font-size: 12px; color: #455a64; }
+#area-label.warn { color: #e65100; font-weight: 700; }
+#area-label.err { color: #c62828; font-weight: 700; }
+#fetch-status, #three-status, #detect-status, #offset-label { font-size: 11px; color: #607d8b; }
+#prop-panel { background: #e3f2fd; border-radius: 6px; padding: 6px; margin: 6px 0; }
+#prop-panel h4 { margin: 0 0 4px; font-size: 12px; }
+#prop-fields label { display: flex; justify-content: space-between; align-items: center; margin: 3px 0; font-size: 11px; gap: 6px; }
+#prop-fields input, #prop-fields select { width: 110px; }
+#detect-list { max-height: 180px; overflow-y: auto; font-size: 11px; }
+.cand { display: flex; align-items: center; gap: 4px; padding: 3px; border-bottom: 1px solid #eee; }
+.cand button { padding: 2px 6px; font-size: 11px; }
+
+/* ===== SVGビュー ===== */
+#svg-toolbar, #three-toolbar {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 12px;
+  padding: 6px 10px; background: #fff; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap;
+}
+#svg-scroll { flex: 1; overflow: auto; background: #cfd8dc; }
+#svg-container { transform-origin: 0 0; padding: 20px; display: inline-block; }
+#svg-container svg { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.25); display: block; }
+.placeholder { color: #78909c; padding: 30px; font-size: 13px; line-height: 1.8; }
+
+/* ===== 3D ===== */
+#three-container { flex: 1; position: relative; background: #b8c4cb; min-height: 0; }
+#three-container canvas { display: block; }
+#three-placeholder { position: absolute; inset: 0; }
+
+/* ===== トースト ===== */
+#toast {
+  position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+  background: #37474f; color: #fff; padding: 10px 18px; border-radius: 8px;
+  font-size: 13px; max-width: 70%; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  white-space: pre-wrap;
+}
+#toast.error { background: #b71c1c; }
+
+/* 場所検索ボックス（地図に重ねる） */
+#map-search {
+  position: absolute; top: 10px; left: 52px; z-index: 1000;
+  width: 340px; max-width: calc(100% - 70px); display: flex; gap: 0;
+  font-family: inherit;
+}
+#search-input {
+  flex: 1; padding: 8px 12px; border: 1px solid #b0bec5; border-right: none;
+  border-radius: 8px 0 0 8px; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.18);
+  background: #fff;
+}
+#search-input:focus { outline: 2px solid #4C96FF; outline-offset: -1px; }
+#search-btn {
+  border-radius: 0 8px 8px 0; background: #4C96FF; color: #fff; border-color: #4C96FF;
+  font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,.18); padding: 8px 14px;
+}
+#search-btn:hover { background: #3084f2; }
+#search-results {
+  position: absolute; top: 42px; left: 0; right: 0; background: #fff;
+  border: 1px solid #cfd8dc; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  max-height: 320px; overflow-y: auto; z-index: 1001;
+}
+.search-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eceff1; font-size: 13px; line-height: 1.45; }
+.search-item:last-child { border-bottom: none; }
+.search-item:hover, .search-item.active { background: #e8f1ff; }
+.search-item .si-title { font-weight: 700; color: #263238; }
+.search-item .si-sub { color: #78909c; font-size: 11px; }
+.search-empty { padding: 12px; color: #90a4ae; font-size: 12px; }
+
+/* AI候補の番号ラベル */
+.cand-tip {
+  background: #ff9100; color: #fff; border: none; border-radius: 8px;
+  font-size: 10px; font-weight: 700; padding: 1px 5px; box-shadow: none;
+}
+.cand-tip::before { display: none; }
+
+/* Leafletの描画カーソル */
+.leaflet-container.drawing { cursor: crosshair !important; }
+.bbox-handle { background: #fff; border: 2px solid #1976d2; border-radius: 50%; width: 12px !important; height: 12px !important; margin-left: -6px !important; margin-top: -6px !important; cursor: move; }

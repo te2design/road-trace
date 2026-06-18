@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>machi-trace ── 道路SVG・3Dマップ生成</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">
+{
+  "imports": {
+    "leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js",
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<header id="topbar">
+  <h1>machi-trace <span class="sub">道路SVG・3Dマップ生成</span></h1>
+  <nav id="tabs">
+    <button id="tab-map" class="tab active">① 地図・範囲選択</button>
+    <button id="tab-svg" class="tab">② SVGマップ</button>
+    <button id="tab-3d" class="tab">③ 3Dマップ</button>
+  </nav>
+  <div id="statusbar">準備中…</div>
+</header>
+
+<main>
+  <!-- ======== 中央ビュー ======== -->
+  <section id="views">
+    <div id="pane-map" class="pane active">
+      <div id="map"></div>
+      <div id="map-search">
+        <input type="text" id="search-input" placeholder="場所を検索（例: 渋谷駅、東京タワー、四谷三丁目）" autocomplete="off">
+        <button id="search-btn" title="検索">検索</button>
+        <div id="search-results" class="hidden"></div>
+      </div>
+    </div>
+    <div id="pane-svg" class="pane">
+      <div id="svg-toolbar">
+        <label>拡大率 <input type="range" id="svg-zoom" min="-3" max="5" step="0.1" value="0"></label>
+        <span id="svg-scale-label"></span>
+        <button id="btn-dl-svg" class="primary">SVGをダウンロード</button>
+      </div>
+      <div id="svg-scroll"><div id="svg-container"><p class="placeholder">まだSVGがありません。「① 地図・範囲選択」で範囲を決めて「データ取得→SVG生成」を押してください。</p></div></div>
+    </div>
+    <div id="pane-3d" class="pane">
+      <div id="three-toolbar">
+        <button id="btn-build3d" class="primary">3Dを生成／更新</button>
+        <label>表示スタイル:
+          <select id="sel-3dstyle">
+            <option value="twin" selected>デジタルツイン（透過）</option>
+            <option value="real">リアル</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="chk-terrain" checked> 地形の起伏</label>
+        <label><input type="checkbox" id="chk-drape"> 航空写真を地面に貼る</label>
+        <label><input type="checkbox" id="chk-3dbuildings" checked> 建物</label>
+        <label><input type="checkbox" id="chk-3dmarkings" checked> 路面標示</label>
+        <button id="btn-dl-glb">glTF(.glb)書き出し</button>
+        <span id="three-status"></span>
+      </div>
+      <div id="three-container"><p class="placeholder" id="three-placeholder">データ取得後、「3Dを生成」を押すとここに3Dマップが表示されます。ドラッグで回転、ホイールで拡大縮小、右ドラッグで移動。</p></div>
+    </div>
+  </section>
+
+  <!-- ======== 右パネル ======== -->
+  <aside id="panel">
+    <details open class="box" id="box-bbox">
+      <summary>1. 範囲を決める</summary>
+      <div class="row">
+        <button id="btn-rect" class="primary">地図上でドラッグして範囲指定</button>
+      </div>
+      <div class="grid4">
+        <label>北(緯度)<input type="number" id="in-n" step="0.0001"></label>
+        <label>南(緯度)<input type="number" id="in-s" step="0.0001"></label>
+        <label>東(経度)<input type="number" id="in-e" step="0.0001"></label>
+        <label>西(経度)<input type="number" id="in-w" step="0.0001"></label>
+      </div>
+      <div class="row"><span id="area-label">範囲未設定</span></div>
+      <div class="row">
+        <label>お試し範囲:
+          <select id="sel-test-bbox">
+            <option value="">（選択）</option>
+            <option value="yotsuya">四ツ谷駅周辺</option>
+            <option value="kagurazaka">神楽坂（坂の検証）</option>
+            <option value="shibuya">渋谷スクランブル</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <label>背景地図:
+          <select id="sel-base">
+            <option value="osm">OSM標準</option>
+            <option value="gsi_pale">地理院 淡色</option>
+            <option value="gsi_photo" selected>地理院 航空写真</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <details open class="box" id="box-fetch">
+      <summary>2. データ取得 → SVG生成</summary>
+      <div class="row"><button id="btn-fetch" class="primary big">データ取得 → SVG生成</button></div>
+      <div class="row"><span id="fetch-status"></span></div>
+      <div id="layer-toggles">
+        <label><input type="checkbox" id="chk-roads" checked> 道路面</label>
+        <label><input type="checkbox" id="chk-markings" checked> 白線（自動生成）</label>
+        <label><input type="checkbox" id="chk-crosswalks" checked> 横断歩道</label>
+        <label><input type="checkbox" id="chk-buildings" checked> 建物</label>
+        <label><input type="checkbox" id="chk-traces" checked> 手描きトレース</label>
+        <label><input type="checkbox" id="chk-classcolors"> 道路を種類別に色分け</label>
+        <label><input type="checkbox" id="chk-ground"> 背景の地面色</label>
+      </div>
+    </details>
+
+    <details class="box" id="box-trace">
+      <summary>3. 手描きトレース（航空写真からなぞる）</summary>
+      <p class="hint">背景を「航空写真」にして、写真に写っている白線をなぞって描き足せます。描いたものはSVG・3Dの両方に反映されます。</p>
+      <div id="trace-tools">
+        <button id="tool-select" class="tool active" title="選択・移動">選択</button>
+        <button id="tool-line" class="tool" title="クリックで点を追加、ダブルクリックで確定">白線</button>
+        <button id="tool-zebra" class="tool" title="横断歩道の両端を2回クリック">横断歩道</button>
+        <button id="tool-band" class="tool" title="停止線の両端を2回クリック">停止線</button>
+        <button id="tool-arrow" class="tool" title="位置をクリック→向きをクリック">矢印</button>
+        <button id="tool-polygon" class="tool" title="クリックで点を追加、ダブルクリックで確定">面塗り</button>
+      </div>
+      <div class="row">
+        <label>線の種類:
+          <select id="sel-line-preset"></select>
+        </label>
+      </div>
+      <div class="row">
+        <label>矢印の種類:
+          <select id="sel-arrow-kind">
+            <option value="through">直進</option>
+            <option value="left">左折</option>
+            <option value="right">右折</option>
+            <option value="through_left">直進＋左折</option>
+            <option value="through_right">直進＋右折</option>
+            <option value="diamond">ダイヤ（横断歩道予告）</option>
+          </select>
+        </label>
+      </div>
+      <div class="row btnrow">
+        <button id="btn-undo">元に戻す</button>
+        <button id="btn-redo">やり直す</button>
+        <button id="btn-del">選択を削除</button>
+      </div>
+      <div id="prop-panel" class="hidden">
+        <h4>選択中の項目</h4>
+        <div id="prop-fields"></div>
+      </div>
+      <div class="row">
+        <button id="btn-offset">写真ズレ補正（2点クリック）</button>
+        <span id="offset-label"></span>
+      </div>
+    </details>
+
+    <details class="box" id="box-detect">
+      <summary>4. AI検出（実験）</summary>
+      <p class="hint">いま地図に表示している範囲の航空写真から、横断歩道・停止線らしい場所を自動で探します。精度は場所次第です。見つかった候補は確認してから採用してください。</p>
+      <div class="row"><button id="btn-detect">表示範囲を解析する</button></div>
+      <div class="row"><span id="detect-status"></span></div>
+      <div id="detect-list"></div>
+      <div class="row btnrow">
+        <button id="btn-accept-all" class="hidden">候補を全部採用</button>
+        <button id="btn-clear-cands" class="hidden">候補をクリア</button>
+      </div>
+    </details>
+
+    <details class="box" id="box-project">
+      <summary>5. 保存・読み込み</summary>
+      <div class="row btnrow">
+        <button id="btn-save">プロジェクト保存(JSON)</button>
+        <button id="btn-load">読み込み</button>
+        <input type="file" id="file-load" accept=".json" class="hidden">
+      </div>
+      <div class="row"><button id="btn-clear-traces" class="danger">トレースを全消去</button></div>
+      <p class="hint">作業内容はブラウザにも自動保存されます（同じパソコン・同じブラウザで再開できます）。</p>
+    </details>
+
+    <div class="box credit">
+      地図データ © OpenStreetMap contributors（ODbL）／ 背景・写真・標高: 地理院タイル（国土地理院）<br>
+      生成したSVG・glTFを公開する際は上記の出典表記を添えてください。
+    </div>
+  </aside>
+</main>
+
+<div id="toast" class="hidden"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
