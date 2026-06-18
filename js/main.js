@@ -35,7 +35,7 @@ function toast(msg, isError = false) {
   t.classList.remove('hidden');
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => t.classList.add('hidden'), isError ? 9000 : 4000);
-  if (isError) { state.errors.push(msg); console.error('[machi-trace]', msg); }
+  if (isError) { state.errors.push(msg); console.error('[road-trace]', msg); }
 }
 
 // ---------- タブ ----------
@@ -308,7 +308,7 @@ $('svg-zoom').oninput = () => regenerateSVG();
 
 $('btn-dl-svg').onclick = () => {
   if (!state.svgText) { toast('まだSVGがありません。先にデータ取得してください。', true); return; }
-  storage.downloadFile('machi-trace-map.svg', state.svgText, 'image/svg+xml');
+  storage.downloadFile('road-trace-map.svg', state.svgText, 'image/svg+xml');
   status('SVGを保存しました（1ユニット=1m の実寸データ）');
 };
 
@@ -351,7 +351,7 @@ $('btn-dl-glb').onclick = async () => {
   try {
     $('three-status').textContent = 'glTFを書き出し中…';
     const buf = await state.viewer.exportGLB();
-    storage.downloadFile('machi-trace-map.glb', new Blob([buf], { type: 'model/gltf-binary' }));
+    storage.downloadFile('road-trace-map.glb', new Blob([buf], { type: 'model/gltf-binary' }));
     $('three-status').textContent = '書き出し完了（メートル実寸 / Blender等で開けます）';
   } catch (e) {
     toast('glTF書き出しに失敗: ' + e.message, true);

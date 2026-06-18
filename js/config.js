@@ -1,4 +1,4 @@
-// machi-trace 全設定値（タイル・道路スタイル・路面標示寸法・色）
+// Road Trace 全設定値（タイル・道路スタイル・路面標示寸法・色）
 
 export const TILE_LAYERS = {
   osm: {

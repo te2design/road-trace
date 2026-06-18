@@ -36,7 +36,7 @@ export function renderSVG(model, autoPrims, tracePrims, opts) {
 
   const parts = [];
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="${r2(minX)} ${r2(-maxY)} ${r2(w)} ${r2(h)}" width="${Math.round(w)}" height="${Math.round(h)}" data-meters-per-unit="1">`);
-  parts.push(`<desc>machi-trace 生成SVG / 1ユニット=1m / 範囲 S${model.bbox.s} W${model.bbox.w} N${model.bbox.n} E${model.bbox.e} / データ © OpenStreetMap contributors (ODbL), 地理院タイル</desc>`);
+  parts.push(`<desc>Road Trace 生成SVG / 1ユニット=1m / 範囲 S${model.bbox.s} W${model.bbox.w} N${model.bbox.n} E${model.bbox.e} / データ © OpenStreetMap contributors (ODbL), 地理院タイル</desc>`);
 
   const layer = (id, label, body) =>
     `<g id="${id}" inkscape:groupmode="layer" inkscape:label="${label}">${body}</g>`;

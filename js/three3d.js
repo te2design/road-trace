@@ -48,7 +48,7 @@ export function createViewer(container, onStatus = () => {}) {
   scene.add(lightGroup);
 
   const world = new THREE.Group();
-  world.name = 'machi-trace';
+  world.name = 'road-trace';
   scene.add(world);
 
   function setupSceneStyle(style, span) {

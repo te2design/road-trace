@@ -14,7 +14,7 @@ export function downloadFile(name, data, mime) {
 
 export function buildProject(state) {
   return {
-    app: 'machi-trace', version: 1,
+    app: 'road-trace', version: 1,
     bbox: state.bbox || null,
     photoOffset: state.photoOffset || { dx: 0, dy: 0 },
     traces: state.traces || [],
@@ -24,7 +24,7 @@ export function buildProject(state) {
 
 export function saveProjectFile(state) {
   const json = JSON.stringify(buildProject(state), null, 1);
-  downloadFile('machi-trace-project.json', json, 'application/json');
+  downloadFile('road-trace-project.json', json, 'application/json');
 }
 
 export function readProjectFile(file) {
@@ -33,7 +33,7 @@ export function readProjectFile(file) {
     r.onload = () => {
       try {
         const obj = JSON.parse(r.result);
-        if (obj.app !== 'machi-trace') throw new Error('machi-traceのプロジェクトファイルではありません');
+        if (obj.app !== 'road-trace' && obj.app !== 'machi-trace') throw new Error('Road Traceのプロジェクトファイルではありません');
         resolve(obj);
       } catch (e) { reject(e); }
     };

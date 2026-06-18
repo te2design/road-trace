@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""machi-trace 開発用サーバー（キャッシュ無効化版）。
+"""Road Trace 開発用サーバー（キャッシュ無効化版）。
 ブラウザがJSモジュールを古いままにしないよう Cache-Control: no-store を付ける。
 通常の利用は start.command（python3 -m http.server）で十分。これは開発・検証用。"""
 import http.server
@@ -19,5 +19,5 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 socketserver.TCPServer.allow_reuse_address = True
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"machi-trace (no-cache) serving on http://localhost:{PORT}")
+    print(f"Road Trace (no-cache) serving on http://localhost:{PORT}")
     httpd.serve_forever()
